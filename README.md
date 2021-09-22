@@ -1,2 +1,4 @@
 # karaoke_program
-karaoke_program using pyaudio
+This is karaoke_program using pyaudio
+
+You can experience similar karaoke echo 
