@@ -147,7 +147,7 @@ def opencmd():
         root.after(1000, start_stream)
 
     else:
-        print("장치를 선택해주세요")
+        print("select device")
 
 
 def closecmd():
@@ -156,8 +156,8 @@ def closecmd():
     root.quit()
 
 
-openbtn = Button(root, text="실행", command=start_thread)
-closebtn = Button(root, text="닫기", command=closecmd)
+openbtn = Button(root, text="Run", command=start_thread)
+closebtn = Button(root, text="Close", command=closecmd)
 
 InputDeviceCombobox.pack()
 OutputDeviceCombobox.pack()
