@@ -1,12 +1,13 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QComboBox, QPushButton
+from PyQt5.QtCore import QCoreApplication
 import pyaudio
 import numpy as np
 import wave
 import os
 from datetime import datetime
 from audioop import mul, add, bias
-from threading import Thread
+import threading
 
 # set globals
 INPUT_INDEX = 0  # change this to microphone
@@ -42,8 +43,8 @@ class MyApp(QWidget):
         self.test1.move(50, 150)
         self.test2 = QLabel('Defalult', self)
         self.test2.move(50, 200)
-        self.btn = QPushButton('start', self)
-        self.btn.move(50, 350)
+        self.startBtn = QPushButton('start', self)
+        self.startBtn.move(50, 350)
 
         inputCB = QComboBox(self)
         inputCB.addItem('Defalult')
@@ -71,7 +72,7 @@ class MyApp(QWidget):
         outputCB.move(50, 100)
         inputCB.activated[str].connect(self.onActivatedInput)
         outputCB.activated[str].connect(self.onActivatedOutput)
-        self.btn.clicked.connect(self.onAirButton)
+        self.startBtn.clicked.connect(self.onAirButton)
         self.setWindowTitle('Karaoke_Program')
         self.setGeometry(300, 300, 600, 600)  # x,y,width,height
         self.show()
@@ -90,7 +91,9 @@ class MyApp(QWidget):
         self.test1.adjustSize()
         self.test2.setText(str(OUTPUT_INDEX))
         self.test2.adjustSize()
-        self.start_stream()
+        thread = threading.Thread(target=self.start_stream)
+        thread.daemon = True
+        thread.start()
 
     def add_delay(self, input):
         global original_frames, index
