@@ -9,7 +9,6 @@ from datetime import datetime
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QComboBox, QPushButton
 from PyQt5.QtCore import QCoreApplication
 
-# set globals
 INPUT_INDEX = 0  # change this to microphone
 OUTPUT_INDEX = 0  # change this to main speaker
 OUTPUT_FILENAME = 'output/%s.wav' % (
@@ -25,6 +24,7 @@ DELAY_INTERVAL = 15  # 클수로 에코의 딜레이가 길어진다
 DELAY_VOLUME_DECAY = 0.6  # 딜레이시켰을때 나오는 음이 얼마나 작아질 것인가
 DELAY_N = 10  # 딜레이 반복되는 횟수
 
+
 # delay sound
 original_frames = []
 index = 0
@@ -36,6 +36,7 @@ class MyApp(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
+        self.echocontrol = 1
 
     def initUI(self):
         # select device index and list
@@ -43,10 +44,12 @@ class MyApp(QWidget):
         self.outputdeviceindex = QLabel('Defalult', self)
         self.inputCB = QComboBox(self)
         self.outputCB = QComboBox(self)
-        # start button
+        # control button
         self.startBtn = QPushButton('start', self)
+        self.controlBtn = QPushButton('echo off', self)
         # UI layout
         self.startBtn.move(50, 350)
+        self.controlBtn.move(200, 350)
         self.inputdeviceindex.move(50, 150)
         self.outputdeviceindex.move(50, 200)
         self.inputCB.move(50, 50)
@@ -56,6 +59,7 @@ class MyApp(QWidget):
         self.inputCB.activated[str].connect(self.onActivatedInput)
         self.outputCB.activated[str].connect(self.onActivatedOutput)
         self.startBtn.clicked.connect(self.onAirButton)
+        self.controlBtn.clicked.connect(self.onoffEcho)
         self.setWindowTitle('Karaoke_Program')
         self.setGeometry(300, 300, 600, 600)
         self.show()
@@ -100,6 +104,14 @@ class MyApp(QWidget):
         thread.daemon = True
         thread.start()
 
+    def onoffEcho(self):
+        if self.echocontrol == 1:  # offecho
+            self.controlBtn.setText('offecho')
+            self.echocontrol = 0
+        elif self.echocontrol == 0:
+            self.controlBtn.setText('onecho')
+            self.echocontrol = 1
+
     def add_delay(self, input):  # karaoke echo
         global original_frames, index
 
@@ -138,7 +150,8 @@ class MyApp(QWidget):
         while stream.is_active():
             try:
                 input = stream.read(CHUNK, exception_on_overflow=False)
-                input = self.add_delay(input)
+                if self.echocontrol == 1:
+                    input = self.add_delay(input)
 
                 stream.write(input)
                 frames.append(input)
