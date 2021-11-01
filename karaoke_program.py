@@ -23,6 +23,7 @@ SAMPLE_WIDTH = 2
 DELAY_INTERVAL = 15  # 클수로 에코의 딜레이가 길어진다
 DELAY_VOLUME_DECAY = 0.6  # 딜레이시켰을때 나오는 음이 얼마나 작아질 것인가
 DELAY_N = 10  # 딜레이 반복되는 횟수
+checkthread = 0
 
 
 # delay sound
@@ -36,7 +37,7 @@ class MyApp(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
-        self.echocontrol = 1
+        self.ecocontrol = 1
 
     def initUI(self):
         # select device index and list
@@ -46,7 +47,7 @@ class MyApp(QWidget):
         self.outputCB = QComboBox(self)
         # control button
         self.startBtn = QPushButton('start', self)
-        self.controlBtn = QPushButton('echo off', self)
+        self.controlBtn = QPushButton('eco off', self)
         # UI layout
         self.startBtn.move(50, 350)
         self.controlBtn.move(200, 350)
@@ -59,7 +60,7 @@ class MyApp(QWidget):
         self.inputCB.activated[str].connect(self.onActivatedInput)
         self.outputCB.activated[str].connect(self.onActivatedOutput)
         self.startBtn.clicked.connect(self.onAirButton)
-        self.controlBtn.clicked.connect(self.onoffEcho)
+        self.controlBtn.clicked.connect(self.onoffEco)
         self.setWindowTitle('Karaoke_Program')
         self.setGeometry(300, 300, 600, 600)
         self.show()
@@ -95,22 +96,26 @@ class MyApp(QWidget):
         OUTPUT_INDEX = int(OutputDeviceValue[text])
 
     def onAirButton(self):  # start karaoke
-        global INPUT_INDEX, OUTPUT_INDEX
+        global INPUT_INDEX, OUTPUT_INDEX, checkthread
         self.inputdeviceindex.setText(str(INPUT_INDEX))
         self.inputdeviceindex.adjustSize()
         self.outputdeviceindex.setText(str(OUTPUT_INDEX))
         self.outputdeviceindex.adjustSize()
-        thread = threading.Thread(target=self.start_stream)
-        thread.daemon = True
-        thread.start()
+        if checkthread == 0:
+            thread = threading.Thread(target=self.start_stream)
+            thread.daemon = True
+            thread.start()
+            checkthread += 1
+        else:
+            print('Its running, close it and run it again')
 
-    def onoffEcho(self):
-        if self.echocontrol == 1:  # offecho
-            self.controlBtn.setText('offecho')
-            self.echocontrol = 0
-        elif self.echocontrol == 0:
-            self.controlBtn.setText('onecho')
-            self.echocontrol = 1
+    def onoffEco(self):
+        if self.ecocontrol == 1:
+            self.controlBtn.setText('off eco')
+            self.ecocontrol = 0
+        elif self.ecocontrol == 0:
+            self.controlBtn.setText('on eco')
+            self.ecocontrol = 1
 
     def add_delay(self, input):  # karaoke echo
         global original_frames, index
@@ -150,7 +155,7 @@ class MyApp(QWidget):
         while stream.is_active():
             try:
                 input = stream.read(CHUNK, exception_on_overflow=False)
-                if self.echocontrol == 1:
+                if self.ecocontrol == 1:
                     input = self.add_delay(input)
 
                 stream.write(input)
